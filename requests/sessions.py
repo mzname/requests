@@ -487,6 +487,7 @@ class Session(SessionRedirectMixin):
         :rtype: requests.Response
         """
         # Create the Request.
+        # print('hi')
         req = Request(
             method=method.upper(),
             url=url,
@@ -742,6 +743,43 @@ class Session(SessionRedirectMixin):
     def __setstate__(self, state):
         for attr, value in state.items():
             setattr(self, attr, value)
+
+
+from twisted.internet import threads
+from twisted.internet.defer import ensureDeferred
+
+class AsyncSession(Session):
+    """An Asyncronous Requests session.
+
+    Provides cookie persistence, connection-pooling, and configuration.
+
+    Basic Usage::
+
+      >>> import requests
+      >>> s = requests.Session()
+      >>> s.get('http://httpbin.org/get')
+      <Response [200]>
+
+    Or as a context manager::
+
+      >>> with requests.Session() as s:
+      >>>     s.get('http://httpbin.org/get')
+      <Response [200]>
+    """
+
+    async def request2(self, *args, **kwargs):
+        """Maintains the existing api for Session.request.
+        Used by all of the higher level methods, e.g. Session.get.
+        """
+        func = super(AsyncSession, self).request
+        return await ensureDeferred(threads.deferToThread(func, *args, **kwargs))
+
+    def request(self, *args, **kwargs):
+        """Maintains the existing api for Session.request.
+        Used by all of the higher level methods, e.g. Session.get.
+        """
+        func = super(AsyncSession, self).request
+        return threads.deferToThread(func, *args, **kwargs)
 
 
 def session():
