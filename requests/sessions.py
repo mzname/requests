@@ -747,6 +747,11 @@ class Session(SessionRedirectMixin):
 
 from twisted.internet import threads
 from twisted.internet.defer import ensureDeferred
+from twisted.internet import asyncioreactor
+from twisted.internet.error import ReactorAlreadyInstalledError
+from twisted.internet import task
+import inspect
+
 
 class AsyncSession(Session):
     """An Asyncronous Requests session.
@@ -766,13 +771,19 @@ class AsyncSession(Session):
       >>>     s.get('http://httpbin.org/get')
       <Response [200]>
     """
+    def __init__(self, reactor=None, *args, **kwargs):
+        if reactor is None:
+            try:
+                import asyncio
+                loop = asyncio.get_event_loop()
+                try:
+                    asyncioreactor.install(loop)
+                except ReactorAlreadyInstalledError:
+                    pass
+            except ImportError:
+                pass
 
-    async def request2(self, *args, **kwargs):
-        """Maintains the existing api for Session.request.
-        Used by all of the higher level methods, e.g. Session.get.
-        """
-        func = super(AsyncSession, self).request
-        return await ensureDeferred(threads.deferToThread(func, *args, **kwargs))
+        super(AsyncSession, self).__init__(*args, **kwargs)
 
     def request(self, *args, **kwargs):
         """Maintains the existing api for Session.request.
@@ -780,6 +791,17 @@ class AsyncSession(Session):
         """
         func = super(AsyncSession, self).request
         return threads.deferToThread(func, *args, **kwargs)
+
+    def wrap(self, *args, **kwargs):
+        return ensureDeferred(*args, **kwargs)
+
+    def run(self, f):
+        if inspect.iscoroutinefunction(f):
+            def w(reactor):
+                return self.wrap(f())
+            return task.react(w)
+        else:
+            return task.react(f)
 
 
 def session():
