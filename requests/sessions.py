@@ -16,7 +16,6 @@ from datetime import timedelta
 
 from twisted.internet import threads
 from twisted.internet.defer import ensureDeferred
-from twisted.internet import asyncioreactor
 from twisted.internet.error import ReactorAlreadyInstalledError
 from twisted.internet import task
 
@@ -777,8 +776,9 @@ class AsyncSession(Session):
                 import asyncio
                 loop = asyncio.get_event_loop()
                 try:
+                    from twisted.internet import asyncioreactor
                     asyncioreactor.install(loop)
-                except ReactorAlreadyInstalledError:
+                except (ReactorAlreadyInstalledError, ImportError):
                     pass
             except ImportError:
                 pass
