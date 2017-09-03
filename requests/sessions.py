@@ -8,10 +8,17 @@ This module provides a Session object to manage and persist settings across
 requests (cookies, auth, proxies).
 """
 import os
+import inspect
 import platform
 import time
 from collections import Mapping
 from datetime import timedelta
+
+from twisted.internet import threads
+from twisted.internet.defer import ensureDeferred
+from twisted.internet import asyncioreactor
+from twisted.internet.error import ReactorAlreadyInstalledError
+from twisted.internet import task
 
 from .auth import _basic_auth_str
 from .compat import cookielib, OrderedDict, urljoin, urlparse, is_py3, str
@@ -745,13 +752,6 @@ class Session(SessionRedirectMixin):
             setattr(self, attr, value)
 
 
-from twisted.internet import threads
-from twisted.internet.defer import ensureDeferred
-from twisted.internet import asyncioreactor
-from twisted.internet.error import ReactorAlreadyInstalledError
-from twisted.internet import task
-import inspect
-
 
 class AsyncSession(Session):
     """An Asyncronous Requests session.
@@ -796,11 +796,16 @@ class AsyncSession(Session):
         return ensureDeferred(*args, **kwargs)
 
     def run(self, f):
-        if inspect.iscoroutinefunction(f):
-            def w(reactor):
-                return self.wrap(f())
-            return task.react(w)
+        # Python 3 only.
+        if hasattr(inspect, 'iscoroutinefunction'):
+            # Is this a coroutine?
+            if inspect.iscoroutinefunction(f):
+                def w(reactor):
+                    return self.wrap(f())
+                # If so, convert coroutine to Deferred automatically.
+                return task.react(w)
         else:
+            # Otherwise, run the Defferred.
             return task.react(f)
 
 
