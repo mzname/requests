@@ -9,12 +9,18 @@ This module implements the Requests API.
 :copyright: (c) 2012 by Kenneth Reitz.
 :license: Apache2, see LICENSE for more details.
 """
+from typing import Optional
 
 from . import sessions
+from . import types
 from .models import Response
 
-
-def request(method: str, url: str, session: sessions.Session = None, **kwargs) -> Response:
+def request(
+    method: types.Method,
+    url: types.URL,
+    session: Optional[sessions.Session] = None,
+    **kwargs
+) -> Response:
     """Constructs and sends a :class:`Request <Request>`.
 
     :param method: method for the new :class:`Request` object.
@@ -63,7 +69,7 @@ def request(method: str, url: str, session: sessions.Session = None, **kwargs) -
         return session.request(method=method, url=url, **kwargs)
 
 
-def get(url: str, params: dict = None, **kwargs) -> Response:
+def get(url: types.URL, params: types.Params = None, **kwargs) -> Response:
     r"""Sends a GET request.
 
     :param url: URL for the new :class:`Request` object.
@@ -77,7 +83,7 @@ def get(url: str, params: dict = None, **kwargs) -> Response:
     return request('get', url, params=params, **kwargs)
 
 
-def options(url: str, **kwargs) -> Response:
+def options(url: types.URL, **kwargs) -> Response:
     r"""Sends an OPTIONS request.
 
     :param url: URL for the new :class:`Request` object.
@@ -90,7 +96,7 @@ def options(url: str, **kwargs) -> Response:
     return request('options', url, **kwargs)
 
 
-def head(url: str, **kwargs) -> Response:
+def head(url: types.URL, **kwargs) -> Response:
     r"""Sends a HEAD request.
 
     :param url: URL for the new :class:`Request` object.
@@ -103,7 +109,7 @@ def head(url: str, **kwargs) -> Response:
     return request('head', url, **kwargs)
 
 
-def post(url: str, data=None, json: dict = None, **kwargs) -> Response:
+def post(url: types.URL, data: types.Data = None, json: types.JSON = None, **kwargs) -> Response:
     r"""Sends a POST request.
 
     :param url: URL for the new :class:`Request` object.
@@ -117,7 +123,7 @@ def post(url: str, data=None, json: dict = None, **kwargs) -> Response:
     return request('post', url, data=data, json=json, **kwargs)
 
 
-def put(url: str, data=None, **kwargs) -> Response:
+def put(url: types.URL, data: types.Data = None, **kwargs) -> Response:
     r"""Sends a PUT request.
 
     :param url: URL for the new :class:`Request` object.
@@ -131,7 +137,7 @@ def put(url: str, data=None, **kwargs) -> Response:
     return request('put', url, data=data, **kwargs)
 
 
-def patch(url: str, data=None, **kwargs) -> Response:
+def patch(url: types.URL, data: types.Data = None, **kwargs) -> Response:
     r"""Sends a PATCH request.
 
     :param url: URL for the new :class:`Request` object.
@@ -145,7 +151,7 @@ def patch(url: str, data=None, **kwargs) -> Response:
     return request('patch', url, data=data, **kwargs)
 
 
-def delete(url: str, **kwargs) -> Response:
+def delete(url: types.URL, **kwargs) -> Response:
     r"""Sends a DELETE request.
 
     :param url: URL for the new :class:`Request` object.

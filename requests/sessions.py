@@ -14,12 +14,17 @@ from collections import Mapping, OrderedDict
 from datetime import timedelta
 from http import cookiejar as cookielib
 from urllib.parse import urljoin, urlparse
-from typing import Callable
 
-from .auth import _basic_auth_str
+
+from .models import Response
+
+from . import auth
+from . import types
+
 from .cookies import (
     cookiejar_from_dict, extract_cookies_to_jar, RequestsCookieJar,
-    merge_cookies, _copy_cookie_jar)
+    merge_cookies, _copy_cookie_jar
+)
 from .models import Request, PreparedRequest, DEFAULT_REDIRECT_LIMIT
 from .hooks import default_hooks, dispatch_hook
 from ._internal_utils import to_native_string
@@ -29,7 +34,7 @@ from .exceptions import (
     ConnectionError, ContentDecodingError, InvalidHeader)
 
 from .structures import CaseInsensitiveDict
-from .adapters import HTTPAdapter
+from .adapters import HTTPAdapter, BaseAdapter
 
 from .utils import (
     requote_uri, get_environ_proxies, get_netrc_auth, should_bypass_proxies,
@@ -38,8 +43,6 @@ from .utils import (
 
 from .status_codes import codes
 
-# formerly defined here, reexposed here for backward compatibility
-from .models import REDIRECT_STATI
 
 # Preferred clock, based on which one is more accurate on a given system.
 if platform.system() == 'Windows':
@@ -49,6 +52,7 @@ if platform.system() == 'Windows':
         preferred_clock = time.clock
 else:
     preferred_clock = time.time
+
 
 
 def merge_setting(request_setting, session_setting, dict_class=OrderedDict):
@@ -455,10 +459,25 @@ class Session(SessionRedirectMixin):
         )
         return p
 
-    def request(self, method: str, url: str,
-            params: dict = None, data=None, headers: dict = None, cookies: dict = None, files: dict = None,
-            auth: Callable = None, timeout=None, allow_redirects: bool = True, proxies: dict = None,
-            hooks: dict = None, stream: bool = None, verify: bool = None, cert=None, json: dict = None):
+    def request(
+        self,
+        method: types.Method,
+        url: types.URL,
+        params: types.Params = None,
+        data: types.Data = None,
+        headers: types.Headers = None,
+        cookies: types.Cookies = None,
+        files: types.Files = None,
+        auth: types.Auth = None,
+        timeout: types.Timeout = None,
+        allow_redirects: types.AllowRedirects = True,
+        proxies: types.Proxies = None,
+        hooks: types.Hooks = None,
+        stream: types.Stream = None,
+        verify: types.Verify = None,
+        cert: types.Cert = None,
+        json: types.JSON = None
+    ):
         """Constructs a :class:`Request <Request>`, prepares it, and sends it.
         Returns :class:`Response <Response>` object.
 
@@ -526,7 +545,7 @@ class Session(SessionRedirectMixin):
 
         return resp
 
-    def get(self, url, **kwargs):
+    def get(self, url: types.URL, **kwargs) -> Response:
         r"""Sends a GET request. Returns :class:`Response` object.
 
         :param url: URL for the new :class:`Request` object.
@@ -537,7 +556,7 @@ class Session(SessionRedirectMixin):
         kwargs.setdefault('allow_redirects', True)
         return self.request('GET', url, **kwargs)
 
-    def options(self, url, **kwargs):
+    def options(self, url: types.URL, **kwargs) -> Response:
         r"""Sends a OPTIONS request. Returns :class:`Response` object.
 
         :param url: URL for the new :class:`Request` object.
@@ -548,7 +567,7 @@ class Session(SessionRedirectMixin):
         kwargs.setdefault('allow_redirects', True)
         return self.request('OPTIONS', url, **kwargs)
 
-    def head(self, url, **kwargs):
+    def head(self, url: types.URL, **kwargs) -> Response:
         r"""Sends a HEAD request. Returns :class:`Response` object.
 
         :param url: URL for the new :class:`Request` object.
@@ -559,7 +578,13 @@ class Session(SessionRedirectMixin):
         kwargs.setdefault('allow_redirects', False)
         return self.request('HEAD', url, **kwargs)
 
-    def post(self, url, data=None, json=None, **kwargs):
+    def post(
+        self,
+        url: types.URL,
+        data: types.Data = None,
+        json: types.JSON = None,
+        **kwargs
+    ) -> Response:
         r"""Sends a POST request. Returns :class:`Response` object.
 
         :param url: URL for the new :class:`Request` object.
@@ -571,7 +596,12 @@ class Session(SessionRedirectMixin):
 
         return self.request('POST', url, data=data, json=json, **kwargs)
 
-    def put(self, url, data=None, **kwargs):
+    def put(self,
+        url: types.URL,
+        data: types.Data = None,
+        json: types.JSON = None,
+        **kwargs
+    ) -> Response:
         r"""Sends a PUT request. Returns :class:`Response` object.
 
         :param url: URL for the new :class:`Request` object.
@@ -582,7 +612,7 @@ class Session(SessionRedirectMixin):
 
         return self.request('PUT', url, data=data, **kwargs)
 
-    def patch(self, url, data=None, **kwargs):
+    def patch(self, url: types.URL, data: types.Data = None, **kwargs):
         r"""Sends a PATCH request. Returns :class:`Response` object.
 
         :param url: URL for the new :class:`Request` object.
@@ -593,7 +623,7 @@ class Session(SessionRedirectMixin):
 
         return self.request('PATCH', url, data=data, **kwargs)
 
-    def delete(self, url, **kwargs):
+    def delete(self, url: types.URL, **kwargs):
         r"""Sends a DELETE request. Returns :class:`Response` object.
 
         :param url: URL for the new :class:`Request` object.
@@ -603,7 +633,7 @@ class Session(SessionRedirectMixin):
 
         return self.request('DELETE', url, **kwargs)
 
-    def send(self, request, **kwargs):
+    def send(self, request: PreparedRequest, **kwargs):
         """Send a given PreparedRequest.
 
         :rtype: requests.Response
@@ -714,7 +744,7 @@ class Session(SessionRedirectMixin):
         return {'verify': verify, 'proxies': proxies, 'stream': stream,
                 'cert': cert}
 
-    def get_adapter(self, url):
+    def get_adapter(self, url: str) -> BaseAdapter:
         """
         Returns the appropriate connection adapter for the given URL.
 

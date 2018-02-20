@@ -94,6 +94,9 @@ class LookupDict(dict):
     def __repr__(self):
         return '<lookup \'%s\'>' % (self.name)
 
+    def __iter__(self):
+        return dict.__iter__(self)
+
     def __getitem__(self, key):
         # We allow fall-through here, so values default to None
 
