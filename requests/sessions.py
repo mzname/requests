@@ -124,8 +124,8 @@ class SessionRedirectMixin(object):
             # It is more likely to get UTF8 header rather than latin1.
             # This causes incorrect handling of UTF8 encoded location headers.
             # To solve this, we re-encode the location in latin1.
-            if is_py3:
-                location = location.encode('latin1')
+            location = location.encode('latin1')
+
             return to_native_string(location, 'utf8')
         return None
 
