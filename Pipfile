@@ -27,3 +27,7 @@ mypy = "*"
 [packages]
 
 "e1839a8" = {path = ".", editable = true, extras=["socks"]}
+
+[scripts]
+
+"typecheck" = "mypy t.py --ignore-missing-imports"

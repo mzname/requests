@@ -703,7 +703,14 @@ class Session(SessionRedirectMixin):
 
         return r
 
-    def merge_environment_settings(self, url, proxies, stream, verify, cert):
+    def merge_environment_settings(
+        self,
+        url: types.URL,
+        proxies: types.Proxies,
+        stream: types.Stream,
+        verify: types.Verify,
+        cert: types.Cert
+    ):
         """
         Check the environment and merge it with some settings.
 
@@ -744,7 +751,7 @@ class Session(SessionRedirectMixin):
         return {'verify': verify, 'proxies': proxies, 'stream': stream,
                 'cert': cert}
 
-    def get_adapter(self, url: str) -> BaseAdapter:
+    def get_adapter(self, url: types.URL) -> BaseAdapter:
         """
         Returns the appropriate connection adapter for the given URL.
 
