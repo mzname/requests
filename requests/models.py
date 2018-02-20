@@ -11,6 +11,12 @@ import collections
 import datetime
 import codecs
 
+
+from http import cookiejar as cookielib
+from urllib.parse import urlunparse, urlsplit, urlencode
+from .compat import basestring
+
+import chardet
 # Import encoding now, to avoid implicit import later.
 # Implicit import within threads may cause LookupError when standard library is in a ZIP,
 # such as in Embedded Python. See https://github.com/requests/requests/issues/3578.
@@ -39,9 +45,6 @@ from .utils import (
     stream_decode_response_unicode, to_key_val_list, parse_header_links,
     iter_slices, guess_json_utf, super_len, check_header_validity,
     is_stream)
-from .compat import (
-    cookielib, urlunparse, urlsplit, urlencode, str, bytes,
-    chardet, builtin_str, basestring)
 import json as complexjson
 from .status_codes import codes
 

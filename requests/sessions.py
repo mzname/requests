@@ -12,9 +12,11 @@ import platform
 import time
 from collections import Mapping, OrderedDict
 from datetime import timedelta
+from http import cookiejar as cookielib
+from urllib.parse import urljoin, urlparse
+from typing import Callable
 
 from .auth import _basic_auth_str
-from .compat import cookielib, urljoin, urlparse, is_py3, str
 from .cookies import (
     cookiejar_from_dict, extract_cookies_to_jar, RequestsCookieJar,
     merge_cookies, _copy_cookie_jar)
@@ -413,7 +415,7 @@ class Session(SessionRedirectMixin):
     def __exit__(self, *args):
         self.close()
 
-    def prepare_request(self, request):
+    def prepare_request(self, request: Request):
         """Constructs a :class:`PreparedRequest <PreparedRequest>` for
         transmission and returns it. The :class:`PreparedRequest` has settings
         merged from the :class:`Request <Request>` instance and those of the
@@ -453,10 +455,10 @@ class Session(SessionRedirectMixin):
         )
         return p
 
-    def request(self, method, url,
-            params=None, data=None, headers=None, cookies=None, files=None,
-            auth=None, timeout=None, allow_redirects=True, proxies=None,
-            hooks=None, stream=None, verify=None, cert=None, json=None):
+    def request(self, method: str, url: str,
+            params: dict = None, data=None, headers: dict = None, cookies: dict = None, files: dict = None,
+            auth: Callable = None, timeout=None, allow_redirects: bool = True, proxies: dict = None,
+            hooks: dict = None, stream: bool = None, verify: bool = None, cert=None, json: dict = None):
         """Constructs a :class:`Request <Request>`, prepares it, and sends it.
         Returns :class:`Response <Response>` object.
 

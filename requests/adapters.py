@@ -10,6 +10,7 @@ and maintain connections.
 
 import os.path
 import socket
+from urllib.parse import urlparse
 
 from urllib3.poolmanager import PoolManager, proxy_from_url
 from urllib3.response import HTTPResponse
@@ -27,7 +28,7 @@ from urllib3.exceptions import SSLError as _SSLError
 from urllib3.exceptions import ResponseError
 
 from .models import Response
-from .compat import urlparse, basestring
+from .compat import basestring
 from .utils import (DEFAULT_CA_BUNDLE_PATH, get_encoding_from_headers,
                     prepend_scheme_if_needed, get_auth_from_url, urldefragauth,
                     select_proxy)
