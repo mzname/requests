@@ -10,7 +10,6 @@ This module contains the primary objects that power Requests.
 import collections
 import datetime
 import codecs
-import sys
 
 # Import encoding now, to avoid implicit import later.
 # Implicit import within threads may cause LookupError when standard library is in a ZIP,
@@ -42,7 +41,7 @@ from .utils import (
     is_stream)
 from .compat import (
     cookielib, urlunparse, urlsplit, urlencode, str, bytes,
-    is_py2, chardet, builtin_str, basestring)
+    chardet, builtin_str, basestring)
 import json as complexjson
 from .status_codes import codes
 
@@ -359,7 +358,7 @@ class PreparedRequest(RequestEncodingMixin, RequestHooksMixin):
         if isinstance(url, bytes):
             url = url.decode('utf8')
         else:
-            url = unicode(url) if is_py2 else str(url)
+            url = str(url)
 
         # Ignore any leading and trailing whitespace characters.
         url = url.strip()
@@ -409,18 +408,6 @@ class PreparedRequest(RequestEncodingMixin, RequestHooksMixin):
         # Bare domains aren't valid URLs.
         if not path:
             path = '/'
-
-        if is_py2:
-            if isinstance(scheme, str):
-                scheme = scheme.encode('utf-8')
-            if isinstance(netloc, str):
-                netloc = netloc.encode('utf-8')
-            if isinstance(path, str):
-                path = path.encode('utf-8')
-            if isinstance(query, str):
-                query = query.encode('utf-8')
-            if isinstance(fragment, str):
-                fragment = fragment.encode('utf-8')
 
         if isinstance(params, (str, bytes)):
             params = to_native_string(params)
