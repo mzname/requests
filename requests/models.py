@@ -503,7 +503,7 @@ class PreparedRequest(RequestEncodingMixin, RequestHooksMixin):
             length = super_len(body)
 
             if length:
-                self.headers['Content-Length'] = builtin_str(length)
+                self.headers['Content-Length'] = str(length)
             elif is_stream(body):
                 self.headers['Transfer-Encoding'] = 'chunked'
             else:

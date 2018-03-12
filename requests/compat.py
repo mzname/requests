@@ -11,3 +11,5 @@ Python 3.
 basestring = (str, bytes)
 numeric_types = (int, float)
 integer_types = (int,)
+bytes = bytes
+str = str

@@ -9,6 +9,7 @@ import pickle
 import collections
 import contextlib
 import warnings
+from urllib.parse import urlparse
 
 import io
 import requests
@@ -16,11 +17,10 @@ import pytest
 import pytest_httpbin
 from requests.adapters import HTTPAdapter
 from requests.auth import HTTPDigestAuth, _basic_auth_str
-from requests.compat import (
-    Morsel, cookielib, getproxies, str, urlparse,
-    builtin_str)
+
 from requests.cookies import (
-    cookiejar_from_dict, morsel_to_cookie)
+    Morsel, cookielib, cookiejar_from_dict, morsel_to_cookie
+)
 from requests.exceptions import (
     ConnectionError, ConnectTimeout, InvalidScheme, InvalidURL,
     MissingScheme, ReadTimeout, Timeout, RetryError, TooManyRedirects,
@@ -33,7 +33,6 @@ from requests.models import urlencode
 from requests.hooks import default_hooks
 from requests.utils import DEFAULT_CA_BUNDLE_PATH
 
-from .compat import StringIO, u
 from .utils import override_environ
 from urllib3.util import Timeout as Urllib3Timeout
 
@@ -849,7 +848,6 @@ class TestRequests:
         url = httpbin('post')
         with open('Pipfile') as f:
             pytest.raises(ValueError, "requests.post(url, data='[{\"some\": \"data\"}]', files={'some': f})")
-            pytest.raises(ValueError, "requests.post(url, data=u('[{\"some\": \"data\"}]'), files={'some': f})")
 
     def test_request_ok_set(self, httpbin):
         r = requests.get(httpbin('status', '404'))
@@ -956,8 +954,8 @@ class TestRequests:
 
     @pytest.mark.parametrize('data',
         (
-            {'stuff': u('ëlïxr')},
-            {'stuff': u('ëlïxr').encode('utf-8')},
+            {'stuff': 'ëlïxr'},
+            {'stuff': 'ëlïxr'.encode('utf-8')},
             {'stuff': 'elixr'},
             {'stuff': 'elixr'.encode('utf-8')},
         ))
@@ -980,13 +978,13 @@ class TestRequests:
     def test_unicode_method_name(self, httpbin):
         files = {'file': open(__file__, 'rb')}
         r = requests.request(
-            method=u('POST'), url=httpbin('post'), files=files)
+            method='POST', url=httpbin('post'), files=files)
         assert r.status_code == 200
 
     def test_unicode_method_name_with_request_object(self, httpbin):
         files = {'file': open(__file__, 'rb')}
         s = requests.Session()
-        req = requests.Request(u('POST'), httpbin('post'), files=files)
+        req = requests.Request('POST', httpbin('post'), files=files)
         prep = s.prepare_request(req)
         assert isinstance(prep.method, builtin_str)
         assert prep.method == 'POST'
@@ -996,7 +994,7 @@ class TestRequests:
 
     def test_non_prepared_request_error(self):
         s = requests.Session()
-        req = requests.Request(u('POST'), '/')
+        req = requests.Request('POST', '/')
 
         with pytest.raises(ValueError) as e:
             s.send(req)
@@ -1263,7 +1261,7 @@ class TestRequests:
 
     def test_response_is_iterable(self):
         r = requests.Response()
-        io = StringIO.StringIO('abc')
+        io = io.StringIO('abc')
         read_ = io.read
 
         def read_mock(amt, decode_content=None):
@@ -1612,7 +1610,7 @@ class TestRequests:
         assert r.url == url
 
     def test_header_keys_are_native(self, httpbin):
-        headers = {u('unicode'): 'blah', 'byte'.encode('ascii'): 'blah'}
+        headers = {'unicode': 'blah', 'byte'.encode('ascii'): 'blah'}
         r = requests.Request('GET', httpbin('get'), headers=headers)
         p = r.prepare()
 
@@ -2033,7 +2031,7 @@ class TestRequests:
         Should work when `release_conn` attr doesn't exist on `response.raw`.
         """
         resp = requests.Response()
-        resp.raw = StringIO.StringIO('test')
+        resp.raw = io.StringIO('test')
         assert not resp.raw.closed
         resp.close()
         assert resp.raw.closed
@@ -2130,7 +2128,7 @@ class TestRequests:
             (None, ('Content-Length', '0')),
             ('test_data', ('Content-Length', '9')),
             (io.BytesIO(b'test_data'), ('Content-Length', '9')),
-            (StringIO.StringIO(''), ('Transfer-Encoding', 'chunked'))
+            (io.StringIO(''), ('Transfer-Encoding', 'chunked'))
         ))
     def test_prepare_content_length(self, httpbin, body, expected):
         """Test prepare_content_length creates expected header."""
@@ -2515,7 +2513,7 @@ class RedirectSession(SessionRedirectMixin):
         return r
 
     def _build_raw(self):
-        string = StringIO.StringIO('')
+        string = io.StringIO('')
         setattr(string, 'release_conn', lambda *args: args)
         return string
 
@@ -2612,7 +2610,7 @@ def test_data_argument_accepts_tuples(data):
         },
         {
             'method': 'GET',
-            'url': u('http://www.example.com/üniçø∂é')
+            'url': 'http://www.example.com/üniçø∂é'
         },
     ))
 def test_prepared_copy(kwargs):

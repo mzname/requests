@@ -16,21 +16,20 @@ from requests.utils import (
     is_valid_cidr, iter_slices, parse_dict_header,
     parse_header_links, prepend_scheme_if_needed,
     requote_uri, select_proxy, should_bypass_proxies, super_len,
-    to_key_val_list, to_native_string,
+    to_key_val_list,
     unquote_header_value, unquote_unreserved,
     urldefragauth, add_dict_to_cookiejar, set_environ)
 from requests._internal_utils import unicode_is_ascii
 
-from .compat import StringIO, cStringIO
+from io import StringIO
 
 
 class TestSuperLen:
 
     @pytest.mark.parametrize(
         'stream, value', (
-            (StringIO.StringIO, 'Test'),
-            (BytesIO, b'Test'),
-            pytest.mark.skipif('cStringIO is None')((cStringIO, 'Test')),
+            (StringIO, 'Test'),
+            (BytesIO, b'Test')
         ))
     def test_io_streams(self, stream, value):
         """Ensures that we properly deal with different kinds of IO streams."""
@@ -39,7 +38,7 @@ class TestSuperLen:
 
     def test_super_len_correctly_calculates_len_of_partially_read_file(self):
         """Ensure that we handle partially consumed file like objects."""
-        s = StringIO.StringIO()
+        s = StringIO()
         s.write('foobarbogus')
         assert super_len(s) == 0
 
@@ -95,7 +94,7 @@ class TestSuperLen:
         assert super_len(LenFile()) == 5
 
     def test_super_len_with_tell(self):
-        foo = StringIO.StringIO('12345')
+        foo = StringIO('12345')
         assert super_len(foo) == 5
         foo.read(2)
         assert super_len(foo) == 3
@@ -514,16 +513,6 @@ def test_parse_header_links(value, expected):
     ))
 def test_prepend_scheme_if_needed(value, expected):
     assert prepend_scheme_if_needed(value, 'http') == expected
-
-
-@pytest.mark.parametrize(
-    'value, expected', (
-        ('T', 'T'),
-        (b'T', 'T'),
-        (u'T', 'T'),
-    ))
-def test_to_native_string(value, expected):
-    assert to_native_string(value) == expected
 
 
 @pytest.mark.parametrize(
