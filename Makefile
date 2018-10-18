@@ -1,4 +1,4 @@
-.PHONY: docs
+.PHONY: docs ci-dev
 init:
 	pip install pipenv --upgrade
 	pipenv install --dev --skip-lock
@@ -7,6 +7,10 @@ test:
 	detox
 ci:
 	pipenv run py.test -n 8 --boxed --junitxml=report.xml
+
+ci-dev:
+	pip install git+https://github.com/urllib3/urllib3.git
+	$(MAKE) ci
 
 test-readme:
 	@pipenv run python setup.py check --restructuredtext --strict && ([ $$? -eq 0 ] && echo "README.rst and HISTORY.rst ok") || echo "Invalid markup in README.rst or HISTORY.rst!"
